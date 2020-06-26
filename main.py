@@ -2,7 +2,7 @@ import numpy as np
 import PySimpleGUI as sg
 import tkinter
 import random
-BOX_SIZE = 15
+CELL_SIZE = 15
 class GameOfLife:
     def __init__(self, Cells=35):
         self.Cells = Cells
@@ -13,7 +13,7 @@ class GameOfLife:
         for i in range(0, self.Cells):
             for j in range(0, self.Cells):
                 self.old_grid[i][j] = 0
-        self.init_graphics()
+        self.setup_interface()
         self.manual_board_setup()
 
     def live_neighbours(self, i , j):
@@ -52,7 +52,7 @@ class GameOfLife:
             self.generation +=1
             
 
-    def init_graphics(self):
+    def setup_interface(self):
         self.graph = sg.Graph((600, 600), (0, 0), (450, 450),
             key='-GRAPH-', change_submits=True, drag_submits=False, background_color='black')
 
@@ -77,15 +77,17 @@ class GameOfLife:
         self.window['-SPEED-'].update(values['-SLIDER-'])
 
     def draw_board(self):
-        BOX_SIZE = 15
+        CELL_SIZE = 15
         self.graph.erase()
         for i in range(self.Cells):
             for j in range(self.Cells):
                 if self.old_grid[i][j]:
-                    self.graph.draw_rectangle((i * BOX_SIZE, j * BOX_SIZE),(i * BOX_SIZE + BOX_SIZE, j * (BOX_SIZE) + BOX_SIZE),line_color='grey',fill_color=self.color)
+                    self.graph.draw_rectangle((i * CELL_SIZE, j * CELL_SIZE),(i * CELL_SIZE + CELL_SIZE, j * (CELL_SIZE) + CELL_SIZE)
+                        ,line_color='grey',fill_color=self.color)
         event, values =  self.window.read(timeout=self.delay)
         if event == '-ABOUT-':
-            sg.popup('Any live cell with two or three live neighbours survives. Any dead cell with three live neighbours becomes a live cell. All other live cells die in the next generation. Similarly, all other dead cells stay dead.',title='Rules')
+            sg.popup('Any live cell with two or three live neighbours survives.\n Any dead cell with three live neighbours becomes a live cell.\n All other live cells die in the next generation.\n Similarly, all other dead cells stay dead.'
+                        ,title='Rules')
         if event in (None, '-EXIT-'):
             self.window.close()
             exit()
@@ -108,32 +110,37 @@ class GameOfLife:
             if event is None or event == '-TOGGLE-' or event == '-EXIT-':
                 break
             if event == '-ABOUT-':
-                sg.popup('Any live cell with two or three live neighbours survives. Any dead cell with three live neighbours becomes a live cell. All other live cells die in the next generation. Similarly, all other dead cells stay dead.',title='Rules')
-            
+                sg.popup('Any live cell with two or three live neighbours survives.\n Any dead cell with three live neighbours becomes a live cell.\n All other live cells die in the next generation.\n Similarly, all other dead cells stay dead.'
+                            ,title='Rules')
             self.window['-SPEED-'].update(values['-SLIDER-'])
             mouse = values['-GRAPH-']
             if event == '-CLEAR-':
                 self.graph.erase()
+                for i in range(0, self.Cells):
+                    for j in range(0, self.Cells):
+                        self.old_grid[i][j] = 0
             if event == '-RANDOM-':
                 self.graph.erase()
                 for i in range(self.Cells):
                     for j in range(self.Cells):
                         self.old_grid[i][j] = random.randint(0,1)
                         if self.old_grid[i][j] == 1:
-                            self.graph.draw_rectangle((i * BOX_SIZE, j * BOX_SIZE),(i * BOX_SIZE + BOX_SIZE, j * (BOX_SIZE) + BOX_SIZE),line_color='grey',fill_color=self.color)
+                            self.graph.draw_rectangle((i * CELL_SIZE, j * CELL_SIZE),(i * CELL_SIZE + CELL_SIZE, j * (CELL_SIZE) + CELL_SIZE)
+                            ,line_color='grey',fill_color=self.color)
             if event == '-GRAPH-':
                 if mouse == (None, None):
                     continue
-                box_x = mouse[0] // BOX_SIZE
-                box_y = mouse[1] // BOX_SIZE
-                if self.old_grid[box_x][box_y] == 1:
-                    id_val = ids[box_x][box_y]
+                cell_x = mouse[0] // CELL_SIZE
+                cell_y = mouse[1] // CELL_SIZE
+                if self.old_grid[cell_x][cell_y] == 1:
+                    id_val = ids[cell_x][cell_y]
                     self.graph.delete_figure(id_val)
-                    self.old_grid[box_x][box_y] = 0
+                    self.old_grid[cell_x][cell_y] = 0
                 else:
-                    id_val = self.graph.draw_rectangle((box_x * BOX_SIZE, box_y * BOX_SIZE),(box_x * BOX_SIZE + BOX_SIZE, box_y * (BOX_SIZE) + BOX_SIZE),line_color='grey',fill_color=self.color)
-                    ids[box_x][box_y] = id_val
-                    self.old_grid[box_x][box_y] = 1
+                    id_val = self.graph.draw_rectangle((cell_x * CELL_SIZE, cell_y * CELL_SIZE),(cell_x * CELL_SIZE + CELL_SIZE, cell_y * (CELL_SIZE) + CELL_SIZE)
+                        ,line_color='grey',fill_color=self.color)
+                    ids[cell_x][cell_y] = id_val
+                    self.old_grid[cell_x][cell_y] = 1
 
         if event is None or event == '-EXIT-':
             self.window.close()
